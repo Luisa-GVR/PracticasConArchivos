@@ -1,7 +1,7 @@
+import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class Punto2{
     public static void main(String[] args) throws IOException {
@@ -10,55 +10,42 @@ public class Punto2{
         String fileC = "src\\c.mat";
 
 
-        FileInputStream fileInputStreamA = new FileInputStream(fileA);
-        byte[] bytesA = fileInputStreamA.readAllBytes();
-        fileInputStreamA.close();
+        FileInputStream readerA = new FileInputStream(fileA);
+        DataInputStream matA = new DataInputStream(readerA);
 
-        ByteBuffer bufferA = ByteBuffer.wrap(bytesA);
+        FileInputStream readerB = new FileInputStream(fileB);
+        DataInputStream matB = new DataInputStream(readerB);
 
-        int numRowsA = bufferA.get();
-        int numColsA = bufferA.get();
-
-        double[][] matrixA = new double[numRowsA][numColsA];
-
-
-        for (int i = 0; i < numRowsA; i++) {
-            for (int j = 0; j < numColsA; j++) {
-                long bits = 0;
-                for (int k = 0; k < 8; k++) {
-                    bits |= (bufferA.get() & 0xFFL) << (8 * k);
-                }
-                matrixA[i][j] = Double.longBitsToDouble(bits);
-            }
-        }
-
-
-
-        FileInputStream fileInputStreamB = new FileInputStream(fileB);
-        byte[] bytesB = fileInputStreamB.readAllBytes();
-        fileInputStreamB.close();
-
-        ByteBuffer bufferB = ByteBuffer.wrap(bytesB);
-
-        int numRowsB = bufferB.get();
-        int numColsB = bufferB.get();
-
-        double[][] matrixB = new double[numRowsB][numColsB];
-
-        for (int i = 0; i < numRowsB; i++) {
-            for (int j = 0; j < numColsB; j++) {
-                long bits = 0;
-                for (int k = 0; k < 8; k++) {
-                    bits |= (bufferB.get() & 0xFFL) << (8 * k);
-                }
-                matrixB[i][j] = Double.longBitsToDouble(bits);
-            }
-        }
+        int numRowsA = matA.readByte();
+        int numColsA = matA.readByte();
+        int numRowsB = matB.readByte();
+        int numColsB = matB.readByte();
 
         if (numColsA != numRowsB) {
             System.out.println("Multiplicacion no posible");
             return;
         }
+
+        double[][] matrixA = new double[numRowsA][numColsA];
+        double[][] matrixB = new double[numRowsB][numColsB];
+
+
+        for (int i = 0; i < numRowsA; i++) {
+            for (int j = 0; j < numColsA; j++) {
+                matrixA[i][j]= matA.readDouble();
+            }
+        }
+        readerA.close();
+        matA.close();
+
+        for (int i = 0; i < numRowsB; i++) {
+            for (int j = 0; j < numColsB; j++) {
+                matrixB[i][j] = matB.readDouble();
+            }
+        }
+
+        readerB.close();
+        matB.close();
 
         double[][] resultMatrix = new double[numRowsA][numColsB];
         for (int i = 0; i < numRowsA; i++) {
@@ -86,8 +73,6 @@ public class Punto2{
         }
 
         fileOutputStreamC.close();
-
-
 
     }
 }
